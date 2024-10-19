@@ -135,7 +135,7 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
     final url = 'https://api.github.com/users/$username';
 
     // Use your actual GitHub token here (replace this string)
-    final String githubToken = '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'; // Replace with your actual token
+    final String githubToken = ''; // Replace with your actual token
     try {
       final response = await http.get(
         Uri.parse(url),
