@@ -115,6 +115,7 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
   Timer? _typingTimer;
   String _typingText = 'Search for a profile...';
   bool _isEditable = false; // Track if the TextField is editable
+  final Duration _debounceDuration = Duration(milliseconds: 500); // 500 ms
 
   Future<void> fetchGithubUser(String username) async {
     if (username.isEmpty) {
@@ -134,7 +135,7 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
     final url = 'https://api.github.com/users/$username';
 
     // Use your actual GitHub token here (replace this string)
-    final String githubToken = 'API_TOKEN'; // Replace with your actual token
+    final String githubToken = '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'; // Replace with your actual token
     try {
       final response = await http.get(
         Uri.parse(url),
@@ -217,8 +218,14 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
     _focusNode.dispose();
     super.dispose();
   }
+  Widget _buildErrorMessage(String message) {
+    return Text(
+      message,
+      style: TextStyle(color: Colors.red),
+      textAlign: TextAlign.center,
+    );
+  }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,44 +236,14 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[850], // Dark background for the search bar
-                borderRadius: BorderRadius.circular(30.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                enabled: _isEditable, // Enable input when editable
-                style: TextStyle(color: Colors.white), // White text color
-                decoration: InputDecoration(
-                  hintText: 'Search GitHub Username',
-                  hintStyle: TextStyle(color: Colors.grey), // Grey hint text
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                ),
-                onChanged: (value) {
-                  // Call fetchGithubUser whenever the user types
-                  fetchGithubUser(value);
-                },
-              ),
-            ),
-
+            _buildSearchBar(),
             SizedBox(height: 20),
             _loading
                 ? Center(child: CircularProgressIndicator())
                 : _userData != null
                 ? _buildUserData(context)
                 : _errorMessage.isNotEmpty
-                ? Text(_errorMessage, style: TextStyle(color: Colors.red))
+                ? _buildErrorMessage(_errorMessage)
                 : Container(),
           ],
         ),
@@ -274,6 +251,50 @@ class _GithubScoutHomePageState extends State<GithubScoutHomePage> {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(30.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        enabled: _isEditable,
+        style: TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: 'Search GitHub Username',
+          hintStyle: TextStyle(color: Colors.grey),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        ),
+        onChanged: (value) {
+          // Cancel the previous timer if it exists
+          _typingTimer?.cancel();
+
+          if (value.isNotEmpty) {
+            _typingTimer = Timer(_debounceDuration, () {
+              fetchGithubUser(value); // Call the function after the debounce duration
+            });
+          } else {
+            // If the search field is empty, you can clear the user data and error message
+            setState(() {
+              _userData = null;
+              _errorMessage = '';
+            });
+          }
+        },
+      ),
+    );
+  }
 
   Widget _buildUserData(BuildContext context) {
     return SingleChildScrollView(
