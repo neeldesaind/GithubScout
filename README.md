@@ -30,6 +30,9 @@ flutter run
 Flutter Documentation
 Author
 Neel Desai
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/neeldesaind/GithubScout/blob/main/LICENSE) file for details.
 
 
 
