@@ -15,7 +15,7 @@ A sleek Flutter app for searching GitHub profiles and viewing detailed user info
   Getting Started
   
 **Clone the repo:**
-git clone https://github.com/yourusername/github_scout.git
+git clone https://github.com/neeldesaind/github_scout.git
 
 **Navigate to the project:**
 cd github_scout
